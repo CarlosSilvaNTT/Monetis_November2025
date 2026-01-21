@@ -80,7 +80,7 @@ public class RegisterSteps {
         registerPage.closeErrorAndGoToLogin();
         // (Opcional) Agora faz o sign in
         if (loginPage == null) loginPage = new LoginPage(Hooks.getDriver());
-
+//comment
         Dotenv dotenv = Dotenv.load();
         String username = dotenv.get("USER");
         loginPage.enterUsername(username);
