@@ -11,4 +11,4 @@ Feature: User Registration
     When I enter valid registration details
     And I accept the terms and conditions
     When I submit the registration form
-  #  Then I should see a success message
+    Then I should see a success message

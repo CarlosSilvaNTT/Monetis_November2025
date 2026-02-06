@@ -22,6 +22,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import pages.LoginPage;
 
 import java.time.Duration;
+import java.time.Instant;
 
 public class RegisterPage {
 
@@ -71,6 +72,7 @@ public class RegisterPage {
     @FindBy(xpath = "//button[@type='submit']")
     private WebElement submitButton;
 
+
     // --- locators auxiliares ---
 
     private static final By COOKIE_BANNER_CLOSE = By.cssSelector(
@@ -88,6 +90,12 @@ public class RegisterPage {
 
     // O teu alvo específico (se continuar a existir)
     private static final By EMAIL_IN_USE_CLOSE_BUTTON = By.xpath("//*[@id='1']/button");
+
+
+    By ANY_LOGIN_ANCHOR = By.xpath("//a[normalize-space()='Login' or contains(normalize-space(.),'Sign in')]");
+    By ANY_LOGIN_BUTTON = By.xpath("//button[normalize-space()='Login' or .//span[normalize-space()='Login']]");
+    By GET_STARTED      = By.xpath("//span[normalize-space()='Get Started' or normalize-space()='Get started']");
+
 
 
 
@@ -125,8 +133,8 @@ public class RegisterPage {
 
 
     // Keeping the same (typo preserved) to match your existing codebase
-    @FindBy(xpath = "//div[contains(text(),'success')]")
-    private WebElement sucessBanner;
+    @FindBy(xpath = "//*[contains(text(),'Welcome,')]")
+    private WebElement welcomeMessage;
 
     // ------------------- Country (React-Select primary) -------------------
     // Placeholder (used as a last-resort click target)
@@ -263,21 +271,45 @@ public class RegisterPage {
 
     /** 2) Clica no link //a[@class='signUp'] para ir para Login */
     public void goToLoginViaSignUpLink() {
-        WebElement link = wait.until(ExpectedConditions.elementToBeClickable(loginLink));
-        scrollIntoView(link);
+
         try {
-            link.click();
-        } catch (ElementClickInterceptedException e) {
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", link);
-        } catch (ElementNotInteractableException e) {
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", link);
-        } catch (StaleElementReferenceException e) {
-            WebElement fresh = driver.findElement(By.xpath("//a[@class='signUp']"));
-            scrollIntoView(fresh);
-            try { fresh.click(); } catch (Exception ex) {
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", fresh);
-            }
+            WebElement link = wait.until(ExpectedConditions.elementToBeClickable(loginLink));
+            scrollIntoView(link);
+            try { link.click(); }
+            catch (Exception e) { ((JavascriptExecutor) driver).executeScript("arguments[0].click();", link); }
+            return;
+        } catch (TimeoutException ignore) {
+            // continua para fallbacks
         }
+
+        for (By locator : new By[]{ANY_LOGIN_ANCHOR, ANY_LOGIN_BUTTON, GET_STARTED}) {
+            try {
+                WebElement el = wait.until(ExpectedConditions.elementToBeClickable(locator));
+                scrollIntoView(el);
+                try { el.click(); }
+                catch (Exception e) { ((JavascriptExecutor) driver).executeScript("arguments[0].click();", el); }
+                return;
+            } catch (TimeoutException ignore) { /* tenta o próximo */ }
+        }
+
+        try {
+            Dotenv dotenv = Dotenv.load();
+            String loginUrl = dotenv.get("LOGIN_URL");
+            if (loginUrl != null && !loginUrl.isEmpty()) {
+                driver.get(loginUrl);
+                return;
+            }
+        } catch (Exception ignore) {}
+
+        String url = driver.getCurrentUrl();
+        if (url != null && url.contains("/register")) {
+            driver.navigate().to(url.replace("/register", "/login"));
+        } else {
+            // se não for possível inferir, tenta a rota /login
+            driver.navigate().to("/login");
+        }
+
+
     }
 
     /** 3) Fluxo completo: fecha a mensagem (se visível) e vai para Login */
@@ -297,9 +329,9 @@ public class RegisterPage {
 
 
 
-                public boolean isSuccessBannerVisible() {
+                public boolean isSuccessMessageVisible() {
         try {
-            WebElement banner = wait.until(ExpectedConditions.visibilityOf(sucessBanner));
+            WebElement banner = wait.until(ExpectedConditions.visibilityOf(welcomeMessage));
             return banner != null && banner.isDisplayed();
         } catch (TimeoutException e) {
             return false;
@@ -556,6 +588,9 @@ public class RegisterPage {
         return s == null ? null : s.trim();
     }
 }
+
+
+
 
 
 

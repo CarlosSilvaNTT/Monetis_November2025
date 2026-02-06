@@ -2,7 +2,6 @@ package stepdefinitions;
 
 import io.cucumber.java.en.*;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
 import pages.LandingPage;
 import utils.Hooks;
 
@@ -20,9 +19,10 @@ public class LandingPageSteps {
         Hooks.ensureInitialized();
         driver = Hooks.getDriver();
 
-
         // Abre a homepage (BASE_URL)
         driver.get(Hooks.baseURL);
+
+        landingPage = new LandingPage(driver);
     }
 
 

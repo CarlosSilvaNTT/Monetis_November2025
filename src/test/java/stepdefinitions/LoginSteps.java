@@ -75,4 +75,6 @@ public class LoginSteps {
     public void i_verify_if_new_page_contains_expected_text() {
         loginPage.verifyExpectedText();
     }
+
+
 }
