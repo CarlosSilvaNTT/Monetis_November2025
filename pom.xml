@@ -29,7 +29,7 @@
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
-            <version>4.39.0</version>
+            <version>4.40.0</version>
         </dependency>
 
 
@@ -158,11 +158,11 @@
                     </includes>
 
 
-                    <systemPropertyVariables>
-                        <!-- Caminho relativo ao diretório do projeto -->
-                        <javax.net.ssl.trustStore>${project.basedir}/truststore.jks</javax.net.ssl.trustStore>
-                        <javax.net.ssl.trustStorePassword>minha-senha</javax.net.ssl.trustStorePassword>
-                    </systemPropertyVariables>
+<!--                    <systemPropertyVariables>-->
+<!--                        &lt;!&ndash; Caminho relativo ao diretório do projeto &ndash;&gt;-->
+<!--                        <javax.net.ssl.trustStore>${project.basedir}/truststore.jks</javax.net.ssl.trustStore>-->
+<!--                        <javax.net.ssl.trustStorePassword>minha-senha</javax.net.ssl.trustStorePassword>-->
+<!--                    </systemPropertyVariables>-->
 
                 </configuration>
             </plugin>

@@ -5,19 +5,24 @@ import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.cucumber.java.Before;
+import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import pages.LoginPage;
 import pages.RegisterPage;
 import utils.Hooks;
 
+import java.time.Instant;
+
 public class RegisterSteps {
     private WebDriver driver;
     private RegisterPage registerPage;
     private LoginPage loginPage;
+
 
     private final Dotenv dotenv = Dotenv.load();
     private final String firstName = dotenv.get("name");
@@ -32,8 +37,7 @@ public class RegisterSteps {
     private final String confirmPass = dotenv.get("confirmPassword");
 
 
-
-    @Before(order=1)
+    @Before(order = 1)
     public void init() {
         if (registerPage == null) {
             driver = Hooks.getDriver();
@@ -76,6 +80,11 @@ public class RegisterSteps {
     public void iSubmitTheRegistrationForm() {
         registerPage.submit();
 
+        if (registerPage.isSuccessMessageVisible()) {
+            return;
+        }
+
+
 // Assim que detectas que o email já existe, fecha a mensagem e vai ao Login:
         registerPage.closeErrorAndGoToLogin();
         // (Opcional) Agora faz o sign in
@@ -90,20 +99,16 @@ public class RegisterSteps {
 
     }
 
+    @Then("I should see a success message")
+    public void iShouldSeeASuccessMessage() {
 
-//    @Then("I should see a success message")
-//    public void iShouldSeeASuccessMessage() {
-//
-//        Assert.assertTrue(
-//                "Expected success message to be visible after registration",
-//                registerPage.isSuccessBannerVisible()
-//        );
-//
-//    }
+        Assert.assertTrue(
+                "Success message was NOT visible after registration!",
+                registerPage.isSuccessMessageVisible()
+        );
+
+
+    }
 
 
 }
-
-
-
-

@@ -10,6 +10,6 @@ Feature: Login Functionality
         And I enter a valid password ""
         And I click the login button
         Then I should be redirected to the dashboard page
-       Then I verify if new page contains expected text
+        Then I verify if new page contains expected text
 
 

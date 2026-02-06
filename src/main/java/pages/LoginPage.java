@@ -1,9 +1,7 @@
 package pages;
 
 import org.junit.Assert;
-import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -33,12 +31,7 @@ public class LoginPage {
     @FindBy(xpath = ("//*[contains(text(), 'Welcome')]"))
     WebElement expectedText;
 
-
-    // Opcional: banner/mensagem de erro login
-    @FindBy(xpath = "//*[contains(translate(normalize-space(.), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'invalid') " +
-            "or contains(translate(normalize-space(.), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'erro')]")
-    private WebElement loginErrorBanner;
-
+    private static final By LOADING_OVERLAY = By.cssSelector("div.loading_screen");
 
 
     public LoginPage(WebDriver driver) {
@@ -75,6 +68,12 @@ public class LoginPage {
     public void clickLoginButton() {
 
         wait.until(ExpectedConditions.elementToBeClickable(loginButton)).click();
+
+        wait.until(ExpectedConditions.invisibilityOfElementLocated(LOADING_OVERLAY));
+        // aguarda o DOM ficar “complete”
+        wait.until(d -> ((JavascriptExecutor) d)
+                .executeScript("return document.readyState").equals("complete"));
+
     }
 
     public void verifyDashboardPage() {
