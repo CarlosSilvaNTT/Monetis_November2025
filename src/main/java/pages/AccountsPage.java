@@ -1,6 +1,7 @@
 package pages;
 
 import org.openqa.selenium.*;
+import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.*;
 
 import java.math.BigDecimal;
@@ -29,6 +30,12 @@ public class AccountsPage {
     private static final By NAV_SETTINGS = By.xpath(
             "//div[@class='navigation']//div[@class='options']/div[span[normalize-space()='Settings']]"
     );
+
+
+
+    private final By paymentsNav =
+            By.xpath("//div[@class='options']//div[span='Payments']");
+
 
 
     public AccountsPage(WebDriver driver) {
@@ -143,5 +150,10 @@ public class AccountsPage {
         // Espera rota /settings
         wait.until(ExpectedConditions.urlContains("/settings"));
     }
+
+    public void clickPaymentsNav(){
+        wait.until(ExpectedConditions.elementToBeClickable(paymentsNav)).click();
+    }
+
 
 }

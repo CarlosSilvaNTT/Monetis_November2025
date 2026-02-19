@@ -17,7 +17,7 @@ public class TransactionsPage {
 
     private static final By TRANSACTIONS_ROOT = By.cssSelector("div.transactions");
     private static final By LOADING_OVERLAY   = By.cssSelector("div.loading_screen");
-    private static final By TRANSACTION_ROWS  = By.cssSelector("div.transactions-list div.transaction");
+    private static final By TRANSACTION_ROWS  = By.cssSelector(".transactions-list .transaction.table");
     private static final By AMOUNT_IN_ROW     = By.cssSelector(".amount");
     private static final By CATEGORY_IN_ROW   = By.cssSelector(".category");
 
@@ -107,10 +107,16 @@ public class TransactionsPage {
                                 categoryText = row.findElement(CATEGORY_IN_ROW).getText();
                             } catch (NoSuchElementException ignore) { /* category pode não existir */ }
 
-                            if (categoryText != null && categoryText.contains(expectedCategoryContains)) {
-                                return true;
+
+                            if (categoryText != null) {
+                                String catUi = categoryText.trim().toLowerCase();
+                                String catExpected = String.valueOf(expectedCategoryContains).trim().toLowerCase();
+                                if (catUi.contains(catExpected)) {
+                                    return true;
+                                }
                             }
                         }
+
                         return false;
                     });
         } catch (TimeoutException te) {
