@@ -10,7 +10,6 @@ import io.cucumber.java.Before;
 
 import java.time.Duration;
 
-import static org.apache.logging.log4j.core.util.ExecutorServices.ensureInitialized;
 
 
 public class Hooks {
@@ -22,11 +21,13 @@ public class Hooks {
 
     @Before(order = 0)
     public void setUp() {
+        ensureInitialized();
 
-        ensureInitialized();  // garante driver + BASE_URL
+        driver.manage().deleteAllCookies();  // <-- só aqui é seguro
         if (baseURL != null && !baseURL.isEmpty()) {
-            driver.get(baseURL);
+            driver.navigate().to(baseURL);   // <-- agora navegas para o login
         }
+// garante driver + BASE_URL
     }
 
     public static synchronized void ensureInitialized() {
