@@ -10,9 +10,9 @@ import utils.Hooks;
 import java.math.BigDecimal;
 import java.time.Duration;
 
-public class TransferSteps {
+public class TransferSteps extends BaseSteps{
 
-    private WebDriver driver;
+
 
     private LoginPage loginPage;
     private AccountsPage accountsPage;
@@ -26,43 +26,41 @@ public class TransferSteps {
 
     @Given("login and access transfer page")
     public void login_and_access_transfer_page() {
-        driver = Hooks.getDriver();
+
+        init(); // from BaseSteps
         loginPage = new LoginPage(driver);
         accountsPage = new AccountsPage(driver);
         transferPage = new TransferPage(driver);
 
-        // ---credentials ---
-        Dotenv dotenv = Dotenv.load();
-        String username = dotenv.get("USER");
-        String password = dotenv.get("PASSWORD");
-
-        // Login flow
-        loginPage.clickGetStarted();
-        loginPage.enterUsername(username);
-        loginPage.enterPassword(password);
-        loginPage.clickLoginButton();
+        // ✅ Só faz login se for mesmo necessário
+        ensureLoggedIn(() -> defaultLoginFlow(loginPage));
 
         // --- Accounts: capture balances BEFORE transfer ---
         accountsPage.waitLoaded();
         beforeChecking = accountsPage.getBalance("Checking");
-        beforeSavings  = accountsPage.getBalance("Savings");
+        beforeSavings = accountsPage.getBalance("Savings");
         Assert.assertNotNull("Checking balance is null", beforeChecking);
         Assert.assertNotNull("Savings balance is null", beforeSavings);
 
         // --- Go to transfer page ---
         accountsPage.clickTransferNav();
         transferPage.waitLoaded();
+
+
+
     }
 
     @When("I select transfer to own account")
 
     public void i_select_transfer_to_own_account() {
+        init();
         transferPage.ensureOwnAccountSelected();
     }
 
 
     @When("I select transfer to other account")
     public void i_select_transfer_to_other_account() {
+        init();
         transferPage.selectOtherAccountOption();
     }
 
@@ -70,6 +68,7 @@ public class TransferSteps {
 
     @When("I fill in transfer form with {string} account and {int} amount and proceed")
     public void i_fill_in_transfer_form_with_account_and_amount_and_proceed(String toAccount, Integer amount) {
+        init();
         // Use BigDecimal to avoid float rounding issues
         this.requestedAmount = new BigDecimal(amount);
 
@@ -91,7 +90,7 @@ public class TransferSteps {
 
     @When("I fill in transfer form with {string} target, {int} amount and proceed")
     public void i_fill_in_transfer_form_other_account(String target, Integer amount) {
-
+        init();
         this.requestedAmount = new BigDecimal(amount);
 
         Assert.assertTrue(
@@ -102,13 +101,12 @@ public class TransferSteps {
         transferPage.enterOtherAccountTarget(target);
         transferPage.enterAmount(requestedAmount);
         transferPage.clickNext();
-
-        // lógica cenário 4
     }
 
 
     @Then("Verify confirmation window appears with transfer details")
     public void verify_confirmation_window_appears_with_transfer_details() {
+        init();
         Assert.assertTrue("Confirmation step not visible", transferPage.isConfirmationVisible());
 //        Assert.assertTrue("Confirmation source mismatch", transferPage.confirmationShowsSource("checking"));
         //       Assert.assertTrue("Confirmation destination mismatch", transferPage.confirmationShowsDestination("savings"));
@@ -117,11 +115,13 @@ public class TransferSteps {
 
     @When("I click to proceed with transfer")
     public void i_click_to_proceed_with_transfer() {
+        init();
         transferPage.confirmTransfer();
     }
 
     @Then("Verify success transfer page appears")
     public void verify_success_transfer_page_appears() {
+        init();
         Assert.assertTrue("Success step not visible", transferPage.isSuccessVisible());
         //       Assert.assertTrue("Success page amount mismatch", transferPage.successShowsAmount(requestedAmount));
     }
@@ -129,7 +129,7 @@ public class TransferSteps {
     @When("I access accounts page")
     public void i_access_accounts_page() {
         // Return to Dashboard to read final balances
-
+        init();
         String url = driver.getCurrentUrl();
         String dashUrl = url.contains("/transfer")
                 ? url.replace("/transfer", "/dashboard")
@@ -145,6 +145,7 @@ public class TransferSteps {
 
     @Then("Verify {string} account balance decreased")
     public void verify_account_balance_decreased(String accountName) {
+        init();
         BigDecimal afterChecking = accountsPage.getBalance("Checking");
         BigDecimal expected = beforeChecking.subtract(requestedAmount);
 
@@ -155,9 +156,9 @@ public class TransferSteps {
         );
     }
 
-
     @When("I access transactions page")
     public void i_access_transactions_page() {
+        init();
         transactionsPage = new TransactionsPage(driver);
         transactionsPage.openViaMenu();
     }
@@ -165,7 +166,7 @@ public class TransferSteps {
 
     @Then("Verify new transaction with {string} appears on the list")
     public void verify_new_transaction_appears(String text) {
-
+        init();
         boolean ok = transactionsPage
                 .waitUntilTransactionAmountAppears(text, Duration.ofSeconds(12));
         Assert.assertTrue("Transaction not found: " + text, ok);
@@ -175,29 +176,35 @@ public class TransferSteps {
 
     @Then("verify {string} account balance increased")
     public void verify_account_balance_increased(String accountName) {
+        init();
 
-        BigDecimal afterChecking = accountsPage.getBalance("Checking");
 
+        // Esperados
         BigDecimal expectedChecking = beforeChecking.subtract(requestedAmount);
+        BigDecimal expectedSavings  = beforeSavings.add(requestedAmount);
 
-// Compute the expected value
-        BigDecimal expectedSavings = beforeSavings.add(requestedAmount);
-
-        // Wait/poll until the UI reflects the updated balance
-        BigDecimal afterSavings = new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(20))
+        // Aguarda até AMBOS os saldos refletirem a transferência (até 20s)
+        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(20))
                 .until(d -> {
-                    BigDecimal current = accountsPage.getBalance(accountName);
-                    return expectedSavings.compareTo(current) == 0 ? current : null;
+                    BigDecimal chk = accountsPage.getBalance("Checking");  // faz waitLoaded internamente
+                    BigDecimal sav = accountsPage.getBalance(accountName);
+                    return expectedChecking.compareTo(chk) == 0
+                            && expectedSavings.compareTo(sav) == 0;
                 });
 
+        // Leitura final (após a condição estar satisfeita)
+        BigDecimal afterChecking = accountsPage.getBalance("Checking");
+        BigDecimal afterSavings  = accountsPage.getBalance(accountName);
 
-        org.junit.Assert.assertEquals(
+
+
+        Assert.assertEquals(
                 "Savings balance did not increase by transfer amount",
                 0, expectedSavings.compareTo(afterSavings)
         );
 
         // Optional but recommended:
-        org.junit.Assert.assertEquals(
+        Assert.assertEquals(
                 "Checking balance did not decrease by transfer amount",
                 0, expectedChecking.compareTo(afterChecking)
         );

@@ -14,22 +14,19 @@ public class LoginPage {
     private final WebDriverWait wait;
     WebDriver driver;
 
-    @FindBy(xpath = ("//span[normalize-space()='Get Started']"))
-    WebElement getStartedButton;
+    private static final By getStartedButton = By.xpath(
+            "//button[span[normalize-space()='Get Started']] " +
+                    " | //a[normalize-space()='Get Started'] " +
+                    " | //span[normalize-space()='Get Started']/ancestor::button"
+    );
 
-    @FindBy(xpath = ("//input[@placeholder='Email']"))
-    public// Replace with actual locator
-    WebElement usernameField;
+    private static final By usernameField = By.xpath("//input[@placeholder='Email']");
 
-    @FindBy(xpath=("//input[@placeholder='Password']")) // Replace with actual locator
-    WebElement passwordField;
+    private static final By passwordField = By.xpath("//input[@placeholder='Password']");
 
-    @FindBy(xpath = ("//button[@type='submit']")) // Replace with actual locator
-    WebElement loginButton;
+    private static final By loginButton = By.xpath("//button[@type='submit']");
 
-
-    @FindBy(xpath = ("//*[contains(text(), 'Welcome')]"))
-    WebElement expectedText;
+    private static final By expectedText = By.xpath("//*[contains(text(), 'Welcome')]");
 
     private static final By LOADING_OVERLAY = By.cssSelector("div.loading_screen");
 
@@ -38,7 +35,6 @@ public class LoginPage {
 
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
-        PageFactory.initElements(driver, this);
 
     }
 
@@ -46,23 +42,32 @@ public class LoginPage {
 
     public void clickGetStarted() {
 
+        try {
+            // Tenta encontrar/clicar; se não existir, apanha o Timeout e segue
+            wait.until(ExpectedConditions.elementToBeClickable(getStartedButton)).click();
+        } catch (TimeoutException | NoSuchElementException ignored) {
+            // Já estamos para lá do landing, ou o produto mudou o botão - segue sem clicar
+        }
 
-        wait.until(ExpectedConditions.elementToBeClickable(getStartedButton)).click();
 
     }
 
 
     public void enterUsername(String username) {
 
+        WebElement el = wait.until(ExpectedConditions.visibilityOfElementLocated(usernameField));
+        el.clear();
+        el.sendKeys(username);
 
-        usernameField.clear(); //  limpar
-        usernameField.sendKeys(username);
 
     }
 
     public void enterPassword(String password) {
-        passwordField.clear();
-        passwordField.sendKeys(password);
+
+        WebElement el = wait.until(ExpectedConditions.visibilityOfElementLocated(passwordField));
+        el.clear();
+        el.sendKeys(password);
+
     }
 
     public void clickLoginButton() {
@@ -88,13 +93,16 @@ public class LoginPage {
     }
 
     public void verifyExpectedText() {
+
         try {
-            wait.until(ExpectedConditions.visibilityOf(expectedText));
-            Assert.assertTrue("Dashboard is not displayed", expectedText.isDisplayed());
+            WebElement el = wait.until(ExpectedConditions.visibilityOfElementLocated(expectedText));
+            Assert.assertTrue("Dashboard text not visible", el.isDisplayed());
         } catch (TimeoutException e) {
-            Assert.fail("Dashboard não foi apresentado após login (timeout a aguardar elemento).");
+            Assert.fail("Dashboard not shown after login.");
         }
-    }
+
+
+}
 
 
     public LandingPage login(String testEmail, String testPassword) {
