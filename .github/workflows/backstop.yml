@@ -71,6 +71,40 @@ jobs:
             backstop/backstop_data/html_report
             backstop/backstop_data/bitmaps_test
           retention-days: 7
+            
+            # Determine test result (pass/fail) and expose as output
+                            - name: Detect Backstop result
+                            id: backstop_result
+                            working-directory: ./backstop
+                            run: |
+                              if grep -R "Mismatch errors found" -n backstop_data/html_report/config.js; then
+                                echo "result=fail" >> $GITHUB_OUTPUT
+                              else
+                                echo "result=pass" >> $GITHUB_OUTPUT
+                              fi
+                            grep -R "ERROR {" -n backstop_data/html_report/config.js ||
+
+      # Post (or update) a sticky PR comment
+      - name: Post Backstop PR Comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: backstop-vrt
+          message: |
+            
+            ## 🖼️ BackstopJS Visual Regression Report
+            
+            **Result:** ${{ steps.backstop_result.outputs.result == 'pass' && '✅ No visual differences detected' || '❌ Visual differences found' }}
+
+            **Report Artifact:**
+                     - Download here: **Backstop-report** (Artifacts section below)
+
+            **Triggered By:**
+                     - ${{ github.actor }}
+            
+            **CI Run:**
+                     - ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
 
       # 7) Fail CI if mismatches were detected
       - name: Fail when mismatches exist
@@ -82,3 +116,52 @@ jobs:
           else
             echo "✅ No visual differences."
           fi
+
+publish-report:
+  name: Publish Backstop Report to GitHub Pages
+  needs: backstop
+  runs-on: ubuntu-latest
+
+  if: always()   # Always publish, even if Backstop fails
+
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Download Backstop report artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: backstop-report
+
+    - name: Prepare report folder
+      run: |
+        REPORT_DIR="report-${{ github.run_id }}"
+        mkdir -p "$REPORT_DIR"
+        cp -r html_report/* "$REPORT_DIR"
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: .
+        destination_dir: "backstop/report-${{ github.run_id }}"
+
+    - name: Make report URL
+      id: report_url
+      run: |
+        echo "url=https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/backstop/report-${{ github.run_id }}/index.html" >> $GITHUB_OUTPUT
+
+    - name: Comment PR with report link
+      if: github.event_name == 'pull_request'
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: backstop-pages
+        message: |
+          ## 🖼️ Backstop Visual Regression Report (GitHub Pages)
+          **Result:** ${{ needs.backstop.outputs.result }}
+          **Live Report:**  
+          👉 ${{ steps.report_url.outputs.url }}
+          
+
