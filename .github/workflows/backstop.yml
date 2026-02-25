@@ -85,14 +85,13 @@ jobs:
           message: |
             ## 🖼️ BackstopJS Visual Regression Report
             **Result:** ${{ steps.detect.outputs.result }}
-            **Artifact:** Check “backstop-report” in this PR.
+            **Artifact:** Check "backstop-report" in this PR.
             **Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
       - name: Fail when mismatches exist
         working-directory: ./backstop
         run: |
           if grep -R "Mismatch errors found" -n backstop_data/html_report/config.js; then
-            echo "❌ Visual differences detected."
             exit 1
           fi
 
@@ -105,31 +104,45 @@ jobs:
 
     steps:
 
-      - name: Checkout gh-pages branch (or create it)
+      - name: Checkout gh-pages branch (create if missing)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: gh-pages
+
+      - name: Create gh-pages if missing
+        run: |
+          if ! git rev-parse --verify gh-pages >/dev/null 2>&1; then
+            echo "Creating gh-pages branch..."
+            git checkout --orphan gh-pages
+            git reset --hard
+            git commit --allow-empty -m "Initialize gh-pages"
+            git push origin gh-pages
+            git checkout ${{ github.ref_name }}
+          else
+            echo "gh-pages branch already exists."
+            git fetch origin gh-pages
+            git checkout gh-pages
+          fi
 
       - name: Download Backstop report artifact
         uses: actions/download-artifact@v4
         with:
           name: backstop-report
 
-      - name: Prepare report directory
+      - name: Prepare report folder
         run: |
           REPORT_DIR="report-${{ github.run_id }}"
           mkdir -p "backstop/${REPORT_DIR}"
           cp -r html_report/* "backstop/${REPORT_DIR}/"
 
-      - name: Deploy to gh-pages
+      - name: Deploy report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: .
 
-      - name: Comment PR with Pages link
+      - name: Comment PR with live URL
         if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
