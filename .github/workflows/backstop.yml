@@ -1,64 +1,83 @@
-name: Backstop Visual Regression Tests
+name: Backstop Visual Regression
 
 on:
   pull_request:
     branches: [ master, main ]
   push:
     branches: [ master, main ]
+  workflow_dispatch:
 
 jobs:
   backstop:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
-      # 1) Checkout project
-      - name: Checkout repository
+      # 1) Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2) Install Node
-      - name: Setup Node
+      # 2) Setup Node environment
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      # 3) Install dependencies
-      - name: Install Dependencies
+      # 3) Install BackstopJS dependencies
+      - name: Install Backstop Dependencies
         working-directory: ./backstop
         run: npm ci
 
-      # 4) Inject environment variables from GitHub Secrets
-      - name: Create .env
+      # 4) Create Backstop .env with secrets
+      - name: Inject .env for Backstop
         working-directory: ./backstop
         run: |
           echo "MONETIS_LOGIN_URL=${{ secrets.MONETIS_LOGIN_URL }}" >> .env
           echo "MONETIS_DASHBOARD_URL=${{ secrets.MONETIS_DASHBOARD_URL }}" >> .env
           echo "MONETIS_USERNAME=${{ secrets.MONETIS_USERNAME }}" >> .env
           echo "MONETIS_PASSWORD=${{ secrets.MONETIS_PASSWORD }}" >> .env
-          echo "MONETIS_USERNAME_SELECTOR=input[name=\"email\"]" >> .env
-          echo "MONETIS_PASSWORD_SELECTOR=input[name=\"password\"]" >> .env
-          echo "MONETIS_LOGIN_BUTTON_SELECTOR=button[type=\"submit\"]" >> .env
-          echo "MONETIS_DASHBOARD_READY_SELECTOR=.dashboard" >> .env
-          echo "MONETIS_OPTIONAL_POPUP_CLOSE_SELECTOR=" >> .env
 
-      # 5) Run Backstop tests
-      - name: Run BackstopJS tests
+          # Selectors
+          echo 'MONETIS_USERNAME_SELECTOR=input[name="email"]' >> .env
+          echo 'MONETIS_PASSWORD_SELECTOR=input[name="password"]' >> .env
+          echo 'MONETIS_LOGIN_BUTTON_SELECTOR=button[type="submit"]' >> .env
+          echo 'MONETIS_DASHBOARD_READY_SELECTOR=.dashboard' >> .env
+          echo 'MONETIS_OPTIONAL_POPUP_CLOSE_SELECTOR=' >> .env
+
+          # Register page fields
+          echo 'MONETIS_REGISTER_URL=https://monetis-delta.vercel.app/register' >> .env
+          echo 'MONETIS_REG_NAME=Testing_Carlos' >> .env
+          echo 'MONETIS_REG_SURNAME=Account' >> .env
+          echo 'MONETIS_REG_EMAIL=testing_carlod@example.com' >> .env
+          echo 'MONETIS_REG_PHONE=123123123' >> .env
+          echo 'MONETIS_REG_STREET=Some Random street' >> .env
+          echo 'MONETIS_REG_POSTAL=1231-123' >> .env
+          echo 'MONETIS_REG_CITY=Lisbon' >> .env
+          echo 'MONETIS_REG_COUNTRY_TEXT=Portugal' >> .env
+          echo 'MONETIS_REG_SUBMIT=false' >> .env
+
+      # 5) Run Backstop tests (allow failure so we can upload report)
+      - name: Run Backstop Tests
         working-directory: ./backstop
-        run: npx backstop test || true  # do NOT fail the job yet
+        run: npx backstop test || true
 
-      # 6) Always upload reports (ref + diffs)
-      - name: Upload BackstopJS Reports
+      # 6) Upload HTML report + bitmaps_test as artifact
+      - name: Upload Backstop Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: backstop-report
-          path: backstop/backstop_data
+          path: |
+            backstop/backstop_data/html_report
+            backstop/backstop_data/bitmaps_test
+          retention-days: 7
 
-      # 7) Fail PR if mismatches exist
-      - name: Fail job if mismatches found
+      # 7) Fail CI if mismatches were detected
+      - name: Fail when mismatches exist
         working-directory: ./backstop
         run: |
           if grep -R "Mismatch errors found" -n backstop_data/html_report/config.js; then
-            echo "❌ Visual differences detected."
+            echo "❌ Visual differences detected. Review artifact: backstop-report"
             exit 1
           else
             echo "✅ No visual differences."
