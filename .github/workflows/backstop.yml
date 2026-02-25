@@ -9,42 +9,38 @@ on:
 
 jobs:
   backstop:
+    name: Run BackstopJS Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
+    outputs:
+      result: ${{ steps.detect.outputs.result }}
+
     steps:
-      # 1) Checkout repository
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2) Setup Node environment
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      # 3) Install BackstopJS dependencies
       - name: Install Backstop Dependencies
         working-directory: ./backstop
         run: npm ci
 
-      # 4) Create Backstop .env with secrets
-      - name: Inject .env for Backstop
+      - name: Inject Backstop .env
         working-directory: ./backstop
         run: |
           echo "MONETIS_LOGIN_URL=${{ secrets.MONETIS_LOGIN_URL }}" >> .env
           echo "MONETIS_DASHBOARD_URL=${{ secrets.MONETIS_DASHBOARD_URL }}" >> .env
           echo "MONETIS_USERNAME=${{ secrets.MONETIS_USERNAME }}" >> .env
           echo "MONETIS_PASSWORD=${{ secrets.MONETIS_PASSWORD }}" >> .env
-
-          # Selectors
           echo 'MONETIS_USERNAME_SELECTOR=input[name="email"]' >> .env
           echo 'MONETIS_PASSWORD_SELECTOR=input[name="password"]' >> .env
           echo 'MONETIS_LOGIN_BUTTON_SELECTOR=button[type="submit"]' >> .env
           echo 'MONETIS_DASHBOARD_READY_SELECTOR=.dashboard' >> .env
           echo 'MONETIS_OPTIONAL_POPUP_CLOSE_SELECTOR=' >> .env
-
-          # Register page fields
           echo 'MONETIS_REGISTER_URL=https://monetis-delta.vercel.app/register' >> .env
           echo 'MONETIS_REG_NAME=Testing_Carlos' >> .env
           echo 'MONETIS_REG_SURNAME=Account' >> .env
@@ -56,13 +52,11 @@ jobs:
           echo 'MONETIS_REG_COUNTRY_TEXT=Portugal' >> .env
           echo 'MONETIS_REG_SUBMIT=false' >> .env
 
-      # 5) Run Backstop tests (allow failure so we can upload report)
       - name: Run Backstop Tests
         working-directory: ./backstop
         run: npx backstop test || true
 
-      # 6) Upload HTML report + bitmaps_test as artifact
-      - name: Upload Backstop Report
+      - name: Upload Backstop Report Artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -70,98 +64,71 @@ jobs:
           path: |
             backstop/backstop_data/html_report
             backstop/backstop_data/bitmaps_test
-          retention-days: 7
-            
-            # Determine test result (pass/fail) and expose as output
-                            - name: Detect Backstop result
-                            id: backstop_result
-                            working-directory: ./backstop
-                            run: |
-                              if grep -R "Mismatch errors found" -n backstop_data/html_report/config.js; then
-                                echo "result=fail" >> $GITHUB_OUTPUT
-                              else
-                                echo "result=pass" >> $GITHUB_OUTPUT
-                              fi
-                            grep -R "ERROR {" -n backstop_data/html_report/config.js ||
 
-      # Post (or update) a sticky PR comment
+      - name: Detect Backstop result (pass/fail)
+        id: detect
+        working-directory: ./backstop
+        run: |
+          if grep -R "Mismatch errors found" -n backstop_data/html_report/config.js; then
+            echo "result=fail" >> $GITHUB_OUTPUT
+          else
+            echo "result=pass" >> $GITHUB_OUTPUT
+          fi
+
       - name: Post Backstop PR Comment
         if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: backstop-vrt
           message: |
-            
             ## 🖼️ BackstopJS Visual Regression Report
-            
-            **Result:** ${{ steps.backstop_result.outputs.result == 'pass' && '✅ No visual differences detected' || '❌ Visual differences found' }}
+            **Result:** ${{ steps.detect.outputs.result }}
+            **Report Artifact:** *(See "backstop-report" artifact in this PR)*  
+            **CI Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-            **Report Artifact:**
-                     - Download here: **Backstop-report** (Artifacts section below)
-
-            **Triggered By:**
-                     - ${{ github.actor }}
-            
-            **CI Run:**
-                     - ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-
-      # 7) Fail CI if mismatches were detected
       - name: Fail when mismatches exist
         working-directory: ./backstop
         run: |
           if grep -R "Mismatch errors found" -n backstop_data/html_report/config.js; then
-            echo "❌ Visual differences detected. Review artifact: backstop-report"
             exit 1
-          else
-            echo "✅ No visual differences."
           fi
 
-publish-report:
-  name: Publish Backstop Report to GitHub Pages
-  needs: backstop
-  runs-on: ubuntu-latest
+  publish-report:
+    name: Publish Backstop Report to GitHub Pages
+    needs: backstop
+    runs-on: ubuntu-latest
+    if: always()
 
-  if: always()   # Always publish, even if Backstop fails
+    steps:
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 0
 
-  steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Download Backstop report artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backstop-report
 
-    - name: Download Backstop report artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: backstop-report
+      - name: Prepare report directory
+        run: |
+          REPORT_DIR="report-${{ github.run_id }}"
+          mkdir -p "backstop/${REPORT_DIR}"
+          cp -r html_report/* "backstop/${REPORT_DIR}/"
 
-    - name: Prepare report folder
-      run: |
-        REPORT_DIR="report-${{ github.run_id }}"
-        mkdir -p "$REPORT_DIR"
-        cp -r html_report/* "$REPORT_DIR"
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: .
 
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: .
-        destination_dir: "backstop/report-${{ github.run_id }}"
-
-    - name: Make report URL
-      id: report_url
-      run: |
-        echo "url=https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/backstop/report-${{ github.run_id }}/index.html" >> $GITHUB_OUTPUT
-
-    - name: Comment PR with report link
-      if: github.event_name == 'pull_request'
-      uses: marocchino/sticky-pull-request-comment@v2
-      with:
-        header: backstop-pages
-        message: |
-          ## 🖼️ Backstop Visual Regression Report (GitHub Pages)
-          **Result:** ${{ needs.backstop.outputs.result }}
-          **Live Report:**  
-          👉 ${{ steps.report_url.outputs.url }}
-          
-
+      - name: Comment PR with Pages link
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: backstop-pages
+          message: |
+            ## 📘 Live Backstop Report
+            https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/backstop/report-${{ github.run_id }}/index.html
