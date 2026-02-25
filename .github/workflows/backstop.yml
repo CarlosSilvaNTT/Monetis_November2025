@@ -109,20 +109,30 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Create gh-pages if missing
+
+      - name: Configure Git identity
         run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]
+
+
+      - name: Create gh-pages if missing
+        run: | 
           if ! git rev-parse --verify gh-pages >/dev/null 2>&1; then
             echo "Creating gh-pages branch..."
             git checkout --orphan gh-pages
             git reset --hard
-            git commit --allow-empty -m "Initialize gh-pages"
+            echo "<html><body><h1>Initializing gh-pages</h1></body></html>" > index.html
+            git add index.html
+            git commit -m "Initialize gh-pages"
             git push origin gh-pages
             git checkout ${{ github.ref_name }}
           else
-            echo "gh-pages branch already exists."
+            echo "gh-pages branch exists."
             git fetch origin gh-pages
             git checkout gh-pages
           fi
+
 
       - name: Download Backstop report artifact
         uses: actions/download-artifact@v4
