@@ -8,6 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
+
   backstop:
     name: Run BackstopJS Tests
     runs-on: ubuntu-latest
@@ -17,6 +18,7 @@ jobs:
       result: ${{ steps.detect.outputs.result }}
 
     steps:
+
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -83,15 +85,17 @@ jobs:
           message: |
             ## 🖼️ BackstopJS Visual Regression Report
             **Result:** ${{ steps.detect.outputs.result }}
-            **Report Artifact:** *(See "backstop-report" artifact in this PR)*  
-            **CI Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            **Artifact:** Check “backstop-report” in this PR.
+            **Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
       - name: Fail when mismatches exist
         working-directory: ./backstop
         run: |
           if grep -R "Mismatch errors found" -n backstop_data/html_report/config.js; then
+            echo "❌ Visual differences detected."
             exit 1
           fi
+
 
   publish-report:
     name: Publish Backstop Report to GitHub Pages
@@ -100,11 +104,12 @@ jobs:
     if: always()
 
     steps:
-      - name: Checkout gh-pages branch
+
+      - name: Checkout gh-pages branch (or create it)
         uses: actions/checkout@v4
         with:
-          ref: gh-pages
           fetch-depth: 0
+          ref: gh-pages
 
       - name: Download Backstop report artifact
         uses: actions/download-artifact@v4
@@ -117,7 +122,7 @@ jobs:
           mkdir -p "backstop/${REPORT_DIR}"
           cp -r html_report/* "backstop/${REPORT_DIR}/"
 
-      - name: Deploy
+      - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -131,4 +136,4 @@ jobs:
           header: backstop-pages
           message: |
             ## 📘 Live Backstop Report
-            https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/backstop/report-${{ github.run_id }}/index.html
+            👉 https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/backstop/report-${{ github.run_id }}/index.html
