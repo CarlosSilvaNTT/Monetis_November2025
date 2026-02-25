@@ -112,8 +112,8 @@ jobs:
 
       - name: Configure Git identity
         run: |
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]
+          git config user.email "cduarsil@emeal.nttdata.com"
+          git config user.name "CarlosSilvaNTT"
 
 
       - name: Create gh-pages if missing
