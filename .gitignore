@@ -1,4 +1,20 @@
+# Ignore BackstopJS environment
 backstop/.env
+
+# Backstop output folders
+backstop/backstop_data/bitmaps_reference/
+backstop/backstop_data/bitmaps_test/
+backstop/backstop_data/html_report/
+
+# Node modules
+backstop/node_modules/
+
+# Backstop helper files
+backstop/backstop_data/engine_scripts/cookies.json
+backstop/backstop_data/engine_scripts/imageStub.jpg
+backstop/backstop_data/engine_scripts/playwright/
+backstop/backstop_data/engine_scripts/puppet/
+
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
