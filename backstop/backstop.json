@@ -1,11 +1,11 @@
 {
   "id": "monetis-visual-regression",
   "viewports": [
-    { "label": "XS", "width": 375, "height": 2000 },
+    { "label": "XS", "width": 375, "height": 1600 },
     { "label": "SM", "width": 567, "height": 2000 },
     { "label": "MD", "width": 768, "height": 2000 },
     { "label": "LG", "width": 992, "height": 2000 },
-    { "label": "XL", "width": 1200, "height": 2000 }
+    { "label": "XL", "width": 1200, "height": 1400 }
   ],
   "scenarios": [
     {
@@ -25,13 +25,34 @@
         ".accounts_balance .account p",
         ".content h1",
         ".Toastify",
-        ".loading_screen"
+        ".loading_screen",
+        ".loading_screen *",
+        "canvas",
+        ".accounts_balance",
+        ".panels",
+        ".overview-list",
+        ".transactions .transaction-list",
+        ".statistics .chart",
+        ".overall-panel .chart"
       ],
       "requireSameDimensions": true,
-      "delay": 900,
+      "delay": 1200,
       "misMatchThreshold": 0.1,
       "onBeforeScript": "onBefore.js",
       "onReadyScript": "onReady.js",
+      "disableAnimations": true
+    },
+    {
+      "label": "Monetis Register Page",
+      "url": "https://monetis-delta.vercel.app/register",
+      "selectors": ["document"],
+      "hideSelectors": [
+        ".Toastify",
+        ".loading_screen"
+      ],
+      "misMatchThreshold": 0.1,
+      "delay": 400,
+      "onReadyScript": "onRegisterFill.js",
       "disableAnimations": true
     }
   ],
@@ -50,3 +71,5 @@
   "asyncCompareLimit": 20,
   "debug": false
 }
+
+
