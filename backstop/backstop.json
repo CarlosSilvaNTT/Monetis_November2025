@@ -1,0 +1,75 @@
+{
+  "id": "monetis-visual-regression",
+  "viewports": [
+    { "label": "XS", "width": 375, "height": 1600 },
+    { "label": "SM", "width": 567, "height": 2000 },
+    { "label": "MD", "width": 768, "height": 2000 },
+    { "label": "LG", "width": 992, "height": 2000 },
+    { "label": "XL", "width": 1200, "height": 1400 }
+  ],
+  "scenarios": [
+    {
+      "label": "Monetis Login Page",
+      "url": "https://monetis-delta.vercel.app/login",
+      "selectors": ["document"],
+      "misMatchThreshold": 0.1,
+      "delay": 300
+    },
+    {
+      "label": "Monetis Dashboard",
+      "url": "https://monetis-delta.vercel.app/dashboard",
+      "selectors": ["document"],
+      "hideSelectors": [
+        ".chart canvas",
+        ".fillPercent",
+        ".accounts_balance .account p",
+        ".content h1",
+        ".Toastify",
+        ".loading_screen",
+        ".loading_screen *",
+        "canvas",
+        ".accounts_balance",
+        ".panels",
+        ".overview-list",
+        ".transactions .transaction-list",
+        ".statistics .chart",
+        ".overall-panel .chart"
+      ],
+      "requireSameDimensions": true,
+      "delay": 1200,
+      "misMatchThreshold": 0.1,
+      "onBeforeScript": "onBefore.js",
+      "onReadyScript": "onReady.js",
+      "disableAnimations": true
+    },
+    {
+      "label": "Monetis Register Page",
+      "url": "https://monetis-delta.vercel.app/register",
+      "selectors": ["document"],
+      "hideSelectors": [
+        ".Toastify",
+        ".loading_screen"
+      ],
+      "misMatchThreshold": 0.1,
+      "delay": 400,
+      "onReadyScript": "onRegisterFill.js",
+      "disableAnimations": true
+    }
+  ],
+  "paths": {
+    "bitmaps_reference": "backstop_data/bitmaps_reference",
+    "bitmaps_test": "backstop_data/bitmaps_test",
+    "engine_scripts": "backstop_data/engine_scripts",
+    "html_report": "backstop_data/html_report",
+    "ci_report": "backstop_data/ci_report"
+  },
+  "engine": "puppeteer",
+  "engineOptions": {
+    "args": ["--no-sandbox"]
+  },
+  "report": ["browser", "CLI"],
+  "asyncCompareLimit": 20,
+  "debug": false
+}
+
+
