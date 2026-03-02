@@ -4,7 +4,7 @@ report({
     {
       "pair": {
         "reference": "../bitmaps_reference/monetis-visual-regression_Monetis_Login_Page_0_document_0_XS.png",
-        "test": "../bitmaps_test/20260227-170726/monetis-visual-regression_Monetis_Login_Page_0_document_0_XS.png",
+        "test": "../bitmaps_test/20260302-105749/monetis-visual-regression_Monetis_Login_Page_0_document_0_XS.png",
         "selector": "document",
         "fileName": "monetis-visual-regression_Monetis_Login_Page_0_document_0_XS.png",
         "label": "Monetis Login Page",
@@ -20,7 +20,7 @@ report({
     {
       "pair": {
         "reference": "../bitmaps_reference/monetis-visual-regression_Monetis_Login_Page_0_document_1_SM.png",
-        "test": "../bitmaps_test/20260227-170726/monetis-visual-regression_Monetis_Login_Page_0_document_1_SM.png",
+        "test": "../bitmaps_test/20260302-105749/monetis-visual-regression_Monetis_Login_Page_0_document_1_SM.png",
         "selector": "document",
         "fileName": "monetis-visual-regression_Monetis_Login_Page_0_document_1_SM.png",
         "label": "Monetis Login Page",
@@ -36,7 +36,7 @@ report({
     {
       "pair": {
         "reference": "../bitmaps_reference/monetis-visual-regression_Monetis_Login_Page_0_document_2_MD.png",
-        "test": "../bitmaps_test/20260227-170726/monetis-visual-regression_Monetis_Login_Page_0_document_2_MD.png",
+        "test": "../bitmaps_test/20260302-105749/monetis-visual-regression_Monetis_Login_Page_0_document_2_MD.png",
         "selector": "document",
         "fileName": "monetis-visual-regression_Monetis_Login_Page_0_document_2_MD.png",
         "label": "Monetis Login Page",
@@ -52,7 +52,7 @@ report({
     {
       "pair": {
         "reference": "../bitmaps_reference/monetis-visual-regression_Monetis_Login_Page_0_document_3_LG.png",
-        "test": "../bitmaps_test/20260227-170726/monetis-visual-regression_Monetis_Login_Page_0_document_3_LG.png",
+        "test": "../bitmaps_test/20260302-105749/monetis-visual-regression_Monetis_Login_Page_0_document_3_LG.png",
         "selector": "document",
         "fileName": "monetis-visual-regression_Monetis_Login_Page_0_document_3_LG.png",
         "label": "Monetis Login Page",
@@ -68,7 +68,7 @@ report({
     {
       "pair": {
         "reference": "../bitmaps_reference/monetis-visual-regression_Monetis_Login_Page_0_document_4_XL.png",
-        "test": "../bitmaps_test/20260227-170726/monetis-visual-regression_Monetis_Login_Page_0_document_4_XL.png",
+        "test": "../bitmaps_test/20260302-105749/monetis-visual-regression_Monetis_Login_Page_0_document_4_XL.png",
         "selector": "document",
         "fileName": "monetis-visual-regression_Monetis_Login_Page_0_document_4_XL.png",
         "label": "Monetis Login Page",
@@ -84,7 +84,7 @@ report({
     {
       "pair": {
         "reference": "../bitmaps_reference/monetis-visual-regression_Monetis_Dashboard_0_document_0_XS.png",
-        "test": "../bitmaps_test/20260227-170726/monetis-visual-regression_Monetis_Dashboard_0_document_0_XS.png",
+        "test": "../bitmaps_test/20260302-105749/monetis-visual-regression_Monetis_Dashboard_0_document_0_XS.png",
         "selector": "document",
         "fileName": "monetis-visual-regression_Monetis_Dashboard_0_document_0_XS.png",
         "label": "Monetis Dashboard",
@@ -100,7 +100,7 @@ report({
     {
       "pair": {
         "reference": "../bitmaps_reference/monetis-visual-regression_Monetis_Dashboard_0_document_1_SM.png",
-        "test": "../bitmaps_test/20260227-170726/monetis-visual-regression_Monetis_Dashboard_0_document_1_SM.png",
+        "test": "../bitmaps_test/20260302-105749/monetis-visual-regression_Monetis_Dashboard_0_document_1_SM.png",
         "selector": "document",
         "fileName": "monetis-visual-regression_Monetis_Dashboard_0_document_1_SM.png",
         "label": "Monetis Dashboard",
@@ -116,7 +116,7 @@ report({
     {
       "pair": {
         "reference": "../bitmaps_reference/monetis-visual-regression_Monetis_Dashboard_0_document_2_MD.png",
-        "test": "../bitmaps_test/20260227-170726/monetis-visual-regression_Monetis_Dashboard_0_document_2_MD.png",
+        "test": "../bitmaps_test/20260302-105749/monetis-visual-regression_Monetis_Dashboard_0_document_2_MD.png",
         "selector": "document",
         "fileName": "monetis-visual-regression_Monetis_Dashboard_0_document_2_MD.png",
         "label": "Monetis Dashboard",
@@ -132,7 +132,7 @@ report({
     {
       "pair": {
         "reference": "../bitmaps_reference/monetis-visual-regression_Monetis_Dashboard_0_document_3_LG.png",
-        "test": "../bitmaps_test/20260227-170726/monetis-visual-regression_Monetis_Dashboard_0_document_3_LG.png",
+        "test": "../bitmaps_test/20260302-105749/monetis-visual-regression_Monetis_Dashboard_0_document_3_LG.png",
         "selector": "document",
         "fileName": "monetis-visual-regression_Monetis_Dashboard_0_document_3_LG.png",
         "label": "Monetis Dashboard",
@@ -148,7 +148,7 @@ report({
     {
       "pair": {
         "reference": "../bitmaps_reference/monetis-visual-regression_Monetis_Dashboard_0_document_4_XL.png",
-        "test": "../bitmaps_test/20260227-170726/monetis-visual-regression_Monetis_Dashboard_0_document_4_XL.png",
+        "test": "../bitmaps_test/20260302-105749/monetis-visual-regression_Monetis_Dashboard_0_document_4_XL.png",
         "selector": "document",
         "fileName": "monetis-visual-regression_Monetis_Dashboard_0_document_4_XL.png",
         "label": "Monetis Dashboard",
@@ -164,7 +164,7 @@ report({
     {
       "pair": {
         "reference": "../bitmaps_reference/monetis-visual-regression_Monetis_Register_Page_0_document_0_XS.png",
-        "test": "../bitmaps_test/20260227-170726/monetis-visual-regression_Monetis_Register_Page_0_document_0_XS.png",
+        "test": "../bitmaps_test/20260302-105749/monetis-visual-regression_Monetis_Register_Page_0_document_0_XS.png",
         "selector": "document",
         "fileName": "monetis-visual-regression_Monetis_Register_Page_0_document_0_XS.png",
         "label": "Monetis Register Page",
@@ -180,7 +180,7 @@ report({
     {
       "pair": {
         "reference": "../bitmaps_reference/monetis-visual-regression_Monetis_Register_Page_0_document_1_SM.png",
-        "test": "../bitmaps_test/20260227-170726/monetis-visual-regression_Monetis_Register_Page_0_document_1_SM.png",
+        "test": "../bitmaps_test/20260302-105749/monetis-visual-regression_Monetis_Register_Page_0_document_1_SM.png",
         "selector": "document",
         "fileName": "monetis-visual-regression_Monetis_Register_Page_0_document_1_SM.png",
         "label": "Monetis Register Page",
@@ -196,7 +196,7 @@ report({
     {
       "pair": {
         "reference": "../bitmaps_reference/monetis-visual-regression_Monetis_Register_Page_0_document_2_MD.png",
-        "test": "../bitmaps_test/20260227-170726/monetis-visual-regression_Monetis_Register_Page_0_document_2_MD.png",
+        "test": "../bitmaps_test/20260302-105749/monetis-visual-regression_Monetis_Register_Page_0_document_2_MD.png",
         "selector": "document",
         "fileName": "monetis-visual-regression_Monetis_Register_Page_0_document_2_MD.png",
         "label": "Monetis Register Page",
@@ -212,7 +212,7 @@ report({
     {
       "pair": {
         "reference": "../bitmaps_reference/monetis-visual-regression_Monetis_Register_Page_0_document_3_LG.png",
-        "test": "../bitmaps_test/20260227-170726/monetis-visual-regression_Monetis_Register_Page_0_document_3_LG.png",
+        "test": "../bitmaps_test/20260302-105749/monetis-visual-regression_Monetis_Register_Page_0_document_3_LG.png",
         "selector": "document",
         "fileName": "monetis-visual-regression_Monetis_Register_Page_0_document_3_LG.png",
         "label": "Monetis Register Page",
@@ -228,7 +228,7 @@ report({
     {
       "pair": {
         "reference": "../bitmaps_reference/monetis-visual-regression_Monetis_Register_Page_0_document_4_XL.png",
-        "test": "../bitmaps_test/20260227-170726/monetis-visual-regression_Monetis_Register_Page_0_document_4_XL.png",
+        "test": "../bitmaps_test/20260302-105749/monetis-visual-regression_Monetis_Register_Page_0_document_4_XL.png",
         "selector": "document",
         "fileName": "monetis-visual-regression_Monetis_Register_Page_0_document_4_XL.png",
         "label": "Monetis Register Page",

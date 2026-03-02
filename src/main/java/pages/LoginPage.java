@@ -14,17 +14,14 @@ public class LoginPage {
     private final WebDriverWait wait;
     WebDriver driver;
 
-    private static final By getStartedButton = By.xpath(
-            "//button[span[normalize-space()='Get Started']] " +
-                    " | //a[normalize-space()='Get Started'] " +
-                    " | //span[normalize-space()='Get Started']/ancestor::button"
-    );
+    private static final By getStartedButton = By.cssSelector(".get-started");
 
-    private static final By usernameField = By.xpath("//input[@placeholder='Email']");
 
-    private static final By passwordField = By.xpath("//input[@placeholder='Password']");
+    private static final By usernameField = By.cssSelector("input[name='email']");
 
-    private static final By loginButton = By.xpath("//button[@type='submit']");
+    private static final By passwordField = By.cssSelector("input[name='password']");
+
+    private static final By loginButton = By.cssSelector("button[type='submit']");
 
     private static final By expectedText = By.xpath("//*[contains(text(), 'Welcome')]");
 
@@ -44,6 +41,7 @@ public class LoginPage {
 
         try {
             // Tenta encontrar/clicar; se não existir, apanha o Timeout e segue
+            wait.until(ExpectedConditions.visibilityOfElementLocated(getStartedButton));
             wait.until(ExpectedConditions.elementToBeClickable(getStartedButton)).click();
         } catch (TimeoutException | NoSuchElementException ignored) {
             // Já estamos para lá do landing, ou o produto mudou o botão - segue sem clicar
