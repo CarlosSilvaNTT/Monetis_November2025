@@ -12,6 +12,11 @@ const {
 module.exports = async (page, scenario, vp) => {
   console.log("Monetis | onBefore: Starting login sequence...");
 
+
+   if (!process.env.MONETIS_LOGIN_URL) {
+      require('dotenv').config();
+   }
+
   if (!MONETIS_LOGIN_URL) {
     throw new Error("MONETIS_LOGIN_URL missing in .env");
   }

@@ -1,0 +1,190 @@
+name: Monetis CI Pipeline
+
+on:
+  pull_request:
+    branches: [ master, main ]
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+
+  selenium:
+    name: Selenium Functional Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Run functional tests
+        run: mvn -q -B test
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2
+
+
+  backstop:
+    name: Backstop Visual Regression
+    needs: selenium        # <- only runs if Selenium succeeds
+    runs-on: ubuntu-latest
+
+    if: |
+      needs.selenium.result == 'success' &&
+      (
+        startsWith(github.event.head_commit.message, 'UI:') ||
+        contains(github.event.pull_request.changed_files, 'backstop/') ||
+        contains(github.event.pull_request.changed_files, 'src/') ||
+        contains(github.event.pull_request.changed_files, 'app/') ||
+        contains(github.event.pull_request.changed_files, 'components/') ||
+        contains(github.event.pull_request.changed_files, 'styles/')
+      )
+
+
+    steps:
+      - name: Cache Node
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('backstop/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        working-directory: ./backstop
+        run: npm ci
+
+      - name: Build .env for Backstop
+        working-directory: ./backstop
+        run: |
+          touch .env
+          echo "MONETIS_LOGIN_URL=${{ secrets.MONETIS_LOGIN_URL }}" >> .env
+          echo "MONETIS_DASHBOARD_URL=${{ secrets.MONETIS_DASHBOARD_URL }}" >> .env
+          echo "MONETIS_USERNAME=${{ secrets.MONETIS_USERNAME }}" >> .env
+          echo "MONETIS_PASSWORD=${{ secrets.MONETIS_PASSWORD }}" >> .env
+          
+          echo "MONETIS_USERNAME_SELECTOR=input[name='email']" >> .env
+          echo "MONETIS_PASSWORD_SELECTOR=input[name='password']" >> .env
+          echo "MONETIS_LOGIN_BUTTON_SELECTOR=button[type='submit']" >> .env
+          
+          echo "MONETIS_REGISTER_URL=https://monetis-delta.vercel.app/register" >> .env
+          echo "MONETIS_REG_NAME=Testing_Carlos" >> .env
+          echo "MONETIS_REG_SURNAME=Account" >> .env
+          echo "MONETIS_REG_EMAIL=testing_carlod@example.com" >> .env
+          echo "MONETIS_REG_PHONE=123123123" >> .env
+          echo "MONETIS_REG_STREET=Some Street" >> .env
+          echo "MONETIS_REG_POSTAL=1234-123" >> .env
+          echo "MONETIS_REG_CITY=Lisbon" >> .env
+          echo "MONETIS_REG_COUNTRY_TEXT=Portugal" >> .env
+          echo "MONETIS_REG_SUBMIT=false" >> .env
+          
+
+      - name: Run Backstop tests
+        working-directory: ./backstop
+        run: npx backstop test --config=backstop.json --asyncCompareLimit=20 || true
+
+      - name: Upload Backstop artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backstop-report
+          path: |
+            backstop/backstop_data/html_report
+            backstop/backstop_data/bitmaps_test
+
+
+      - name: Save summary
+        working-directory: ./backstop
+        run: |
+            cp backstop_data/html_report/config.js summary.js
+      
+
+      - name: Upload summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: backstop-summary
+          path: backstop/summary.js
+
+
+
+
+      - name: Detect result
+        id: detect
+        working-directory: ./backstop
+        run: |
+            if grep -R "Mismatch errors found" -n backstop_data/html_report/config.js; then
+              echo "result=fail" >> $GITHUB_OUTPUT
+            else
+              echo "result=pass" >> $GITHUB_OUTPUT
+            fi
+          
+
+  publish:
+    name: Publish to GitHub Pages
+    needs: backstop
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: backstop-report
+
+      - name: Prepare folder
+        run: |
+          REPORT="report-${{ github.run_id }}"
+          mkdir -p backstop/${REPORT}
+          cp -r html_report/* backstop/${REPORT}/
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages
+          keep_files: true
+          force_orphan: false
+
+  notify:
+    name: PR Comment
+    needs: [backstop, publish]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Comment Result
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: monetis-ci
+          message: |
+            ## 🚦 Monetis CI Summary
+            **Functional tests:** ✔ Selenium  
+            **Visual tests:** ${{ needs.backstop.outputs.result }}
+            **Report:** https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/backstop/report-${{ github.run_id }}/index.html
